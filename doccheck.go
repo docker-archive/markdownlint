@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,18 +11,32 @@ import (
 	"unicode/utf8"
 )
 
+var verbose = flag.Bool("v", false, "verbose log output")
+
+func verboseLog(format string, a ...interface{}) (n int, err error) {
+	if !*verbose {
+		return 0, nil
+	}
+	return fmt.Printf(format, a...)
+}
+
 // allFiles a lookup table of all the files in the 'docs' dir
 // also takes advantage of the random order to avoid testing markdown files in the same order.
-var allFiles map[string]bool
+type fileDetails struct {
+	fullPath string
+}
+
+var allFiles map[string]*fileDetails
 
 func main() {
+	flag.Parse()
 	if len(os.Args) < 2 {
 		printUsage()
 		os.Exit(-1)
 	}
 	dir := os.Args[1]
 
-	allFiles = make(map[string]bool)
+	allFiles = make(map[string]*fileDetails)
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -36,8 +51,9 @@ func main() {
 			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
-		// fmt.Printf("\t walked to %s\n", file)
-		allFiles[file] = true
+		// verboseLog("\t walked to %s\n", file)
+		allFiles[file] = new(fileDetails)
+		allFiles[file].fullPath = path
 		return nil
 	})
 	if err != nil {
@@ -45,32 +61,39 @@ func main() {
 		os.Exit(-1)
 	}
 
-	for file, _ := range allFiles {
-		fmt.Printf(" %s\n", file)
+	errorCount := 0
+	for file, details := range allFiles {
+		if !strings.HasSuffix(file, ".md") {
+			continue
+		}
+		verboseLog(" %s\n", file)
 
-		reader, err := OpenReader(file)
+		reader, err := OpenReader(details.fullPath)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
-			os.Exit(-1)
+			fmt.Printf("ERROR opening: %s\n", err)
+			errorCount++
 		}
 
 		err = checkHugoFrontmatter(reader)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
-			os.Exit(-1)
+			fmt.Printf(" %s\n", file)
+			fmt.Printf("ERROR frontmatter: %s\n", err)
+			errorCount++
 		}
 		reader.Close()
 	}
 
 	fmt.Printf("Summary:\n")
 	fmt.Printf("\tFound %d files\n", len(allFiles))
+	fmt.Printf("\tFound %d errors\n", errorCount)
 	// return the number of 404's to show that there are things to be fixed
-	os.Exit(0)
+	os.Exit(errorCount)
 }
 
 func printUsage() {
 	fmt.Println("Please specify a directory to check")
 	fmt.Println("\tfor example: docscheck .")
+	flag.PrintDefaults()
 }
 
 // https://gohugo.io/content/front-matter/
@@ -83,23 +106,23 @@ func checkHugoFrontmatter(reader *LineReader) (err error) {
 		}
 		buff := string(byteBuff)
 		if buff == "+++" {
-			fmt.Println("Found TOML start")
+			verboseLog("Found TOML start")
 			break
 		}
 		if strings.HasPrefix(buff, "<!--") {
 			if !strings.HasSuffix(buff, "-->") {
-				fmt.Println("found comment start")
+				verboseLog("found comment start")
 				foundComment = true
 				continue
 			}
 		}
-		//fmt.Printf("ReadLine: %s, %v, %s\n", string(byteBuff), isPrefix, err)
+		//verboseLog("ReadLine: %s, %v, %s\n", string(byteBuff), isPrefix, err)
 		for i := 0; i < len(buff); {
 			runeValue, width := utf8.DecodeRuneInString(buff[i:])
 			if unicode.IsSpace(runeValue) {
 				i += width
 			} else {
-				fmt.Printf("Unexpected non-whitespace char: %s", buff)
+				verboseLog("Unexpected non-whitespace char: %s", buff)
 				return fmt.Errorf("Unexpected non-whitespace char: %s", buff)
 			}
 		}
@@ -113,10 +136,10 @@ func checkHugoFrontmatter(reader *LineReader) (err error) {
 		}
 		buff := string(byteBuff)
 		if buff == "+++" {
-			fmt.Println("Found TOML end")
+			verboseLog("Found TOML end")
 			break
 		}
-		fmt.Printf("\t%s\n", buff)
+		verboseLog("\t%s\n", buff)
 	}
 	// remove trailing close comment
 	if foundComment {
@@ -125,10 +148,10 @@ func checkHugoFrontmatter(reader *LineReader) (err error) {
 			return err
 		}
 		buff := string(byteBuff)
-		fmt.Printf("is this a comment? (%s)\n", buff)
+		verboseLog("is this a comment? (%s)\n", buff)
 		if strings.HasSuffix(buff, "-->") {
 			if !strings.HasPrefix(buff, "<!--") {
-				fmt.Println("found comment end")
+				verboseLog("found comment end")
 				foundComment = false
 			}
 		}
