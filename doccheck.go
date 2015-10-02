@@ -48,19 +48,18 @@ func main() {
 	for file, _ := range allFiles {
 		fmt.Printf(" %s\n", file)
 
-		f, err := os.Open(file)
+		reader, err := OpenReader(file)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
 			os.Exit(-1)
 		}
-		reader := bufio.NewReader(f)
 
 		err = checkHugoFrontmatter(reader)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
 			os.Exit(-1)
 		}
-		f.Close()
+		reader.Close()
 	}
 
 	fmt.Printf("Summary:\n")
@@ -75,7 +74,7 @@ func printUsage() {
 }
 
 // https://gohugo.io/content/front-matter/
-func checkHugoFrontmatter(reader *bufio.Reader) (err error) {
+func checkHugoFrontmatter(reader *LineReader) (err error) {
 	foundComment := false
 	for err == nil {
 		byteBuff, _, err := reader.ReadLine()
@@ -133,9 +132,56 @@ func checkHugoFrontmatter(reader *bufio.Reader) (err error) {
 				foundComment = false
 			}
 		}
+		if foundComment {
+			reader.UnreadLine(buff)
+			return fmt.Errorf("Did not find expected close metadata comment")
+		}
 	}
-	//	if foundComment {
-	//		return 99, fmt.Errorf("missing a close html comment around frontmatter")
-	//	}
 	return nil
+}
+
+// Fake Reader that can 'unread' a complete line
+type LineReader struct {
+	file       *os.File
+	reader     *bufio.Reader
+	unreadLine string
+}
+
+// For testing
+func ByteReader(str string) *LineReader {
+	reader := strings.NewReader(str)
+	r := new(LineReader)
+	r.reader = bufio.NewReader(reader)
+	return r
+}
+
+func OpenReader(filename string) (*LineReader, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	reader := bufio.NewReader(f)
+	r := new(LineReader)
+	r.file = f
+	r.reader = reader
+	return r, nil
+}
+
+func (r *LineReader) ReadLine() (line []byte, isPrefix bool, err error) {
+	if r.unreadLine == "" {
+		return r.reader.ReadLine()
+	}
+	lines := strings.SplitN(r.unreadLine, "\n", 2)
+	r.unreadLine = lines[1]
+	return []byte(lines[0]), false, nil
+}
+
+func (r *LineReader) UnreadLine(str string) {
+	r.unreadLine = strings.Join([]string{str, r.unreadLine}, "\n")
+}
+
+func (r *LineReader) Close() {
+	if r.file != nil {
+		r.file.Close()
+	}
 }
