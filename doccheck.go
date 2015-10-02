@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,22 +48,19 @@ func main() {
 	for file, _ := range allFiles {
 		fmt.Printf(" %s\n", file)
 
-		reader, err := os.Open(file)
+		f, err := os.Open(file)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
 			os.Exit(-1)
 		}
+		reader := bufio.NewReader(f)
 
-		sectionReader := io.NewSectionReader(reader, 0, 2048)
-		offset, err := checkHugoFrontmatter(sectionReader)
+		err = checkHugoFrontmatter(reader)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
 			os.Exit(-1)
 		}
-		if offset <= 0 {
-			fmt.Printf("ERROR: no frontmatter found\n")
-			os.Exit(-1)
-		}
+		f.Close()
 	}
 
 	fmt.Printf("Summary:\n")
@@ -78,45 +75,67 @@ func printUsage() {
 }
 
 // https://gohugo.io/content/front-matter/
-func checkHugoFrontmatter(reader *io.SectionReader) (offset int, err error) {
-	byteBuff := make([]byte, 2048)
-	length, err := reader.Read(byteBuff)
-	if err != nil && err != io.EOF {
-		return length, err
-	}
-	buff := string(byteBuff)
-
-	// remove any leading empty lines
-	i := 0
-	for i < len(buff) {
-		runeValue, width := utf8.DecodeRuneInString(buff[i:])
-		if unicode.IsSpace(runeValue) {
-			i += width
-		} else {
+func checkHugoFrontmatter(reader *bufio.Reader) (err error) {
+	foundComment := false
+	for err == nil {
+		byteBuff, _, err := reader.ReadLine()
+		if err != nil {
+			return err
+		}
+		buff := string(byteBuff)
+		if buff == "+++" {
+			fmt.Println("Found TOML start")
 			break
 		}
-	}
-	// remove the next line if it starts with `<!--'
-	if strings.HasPrefix(buff[i:], "<!--") {
-		lineEnd := strings.IndexAny(buff[i:], "\n")
-		if lineEnd != -1 {
-			startComment := strings.TrimSuffix(buff[i:lineEnd], "\r")
-			if !strings.HasSuffix(startComment, "-->") {
+		if strings.HasPrefix(buff, "<!--") {
+			if !strings.HasSuffix(buff, "-->") {
 				fmt.Println("found comment start")
-				i += lineEnd + 1
+				foundComment = true
+				continue
+			}
+		}
+		//fmt.Printf("ReadLine: %s, %v, %s\n", string(byteBuff), isPrefix, err)
+		for i := 0; i < len(buff); {
+			runeValue, width := utf8.DecodeRuneInString(buff[i:])
+			if unicode.IsSpace(runeValue) {
+				i += width
+			} else {
+				fmt.Printf("Unexpected non-whitespace char: %s", buff)
+				return fmt.Errorf("Unexpected non-whitespace char: %s", buff)
 			}
 		}
 	}
-	// frontmatter marker
-	if !strings.HasPrefix(buff[i:], "+++") {
-		return 0, fmt.Errorf("No TOML fronmatter marker (+++) found (next string: %s)", buff[i:i+10])
-	}
-	i += len("+++\n")
-	if buff[i] == '\r' {
-		i++ // \r\n
-	}
-	fmt.Printf("Next up: %s\n", buff[i:i+10])
+
 	// read lines until `+++` ending
+	for err == nil {
+		byteBuff, _, err := reader.ReadLine()
+		if err != nil {
+			return err
+		}
+		buff := string(byteBuff)
+		if buff == "+++" {
+			fmt.Println("Found TOML end")
+			break
+		}
+		fmt.Printf("\t%s\n", buff)
+	}
 	// remove trailing close comment
-	return i, nil
+	if foundComment {
+		byteBuff, _, err := reader.ReadLine()
+		if err != nil {
+			return err
+		}
+		buff := string(byteBuff)
+		fmt.Printf("is this a comment? (%s)\n", buff)
+		if strings.HasSuffix(buff, "-->") {
+			if !strings.HasPrefix(buff, "<!--") {
+				fmt.Println("found comment end")
+				foundComment = false
+			}
+		}
+	}
+	//	if foundComment {
+	//		return 99, fmt.Errorf("missing a close html comment around frontmatter")
+	//	}
+	return nil
 }
