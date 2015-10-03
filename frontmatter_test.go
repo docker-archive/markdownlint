@@ -48,7 +48,12 @@ parent = "mn_reference"
 `
 
 func TestFrontmatterFound(t *testing.T) {
-	err := checkHugoFrontmatter(ByteReader(OK_TOPIC))
+	file := "ok"
+	allFiles = make(map[string]*fileDetails)
+	allFiles[file] = new(fileDetails)
+	allFiles[file].fullPath = file
+
+	err := checkHugoFrontmatter(ByteReader(OK_TOPIC), file)
 
 	if err != nil {
 		t.Errorf("ERROR parsing: %v", err)
@@ -56,7 +61,12 @@ func TestFrontmatterFound(t *testing.T) {
 }
 
 func TestFrontmatterError(t *testing.T) {
-	err := checkHugoFrontmatter(ByteReader(MISSING_COMMENT_END_TOPIC))
+	file := "missing"
+	allFiles = make(map[string]*fileDetails)
+	allFiles[file] = new(fileDetails)
+	allFiles[file].fullPath = file
+
+	err := checkHugoFrontmatter(ByteReader(MISSING_COMMENT_END_TOPIC), file)
 
 	if err == nil {
 		t.Errorf("Expected error")

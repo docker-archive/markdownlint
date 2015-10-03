@@ -24,6 +24,7 @@ func verboseLog(format string, a ...interface{}) (n int, err error) {
 // also takes advantage of the random order to avoid testing markdown files in the same order.
 type fileDetails struct {
 	fullPath string
+	meta     map[string]string
 }
 
 var allFiles map[string]*fileDetails
@@ -74,7 +75,7 @@ func main() {
 			errorCount++
 		}
 
-		err = checkHugoFrontmatter(reader)
+		err = checkHugoFrontmatter(reader, file)
 		if err != nil {
 			fmt.Printf(" %s\n", file)
 			fmt.Printf("ERROR frontmatter: %s\n", err)
@@ -82,6 +83,8 @@ func main() {
 		}
 		reader.Close()
 	}
+
+	// TODO (JIRA: DOCS-181): Title, unique across products if not, file should include an {identifier}
 
 	fmt.Printf("Summary:\n")
 	fmt.Printf("\tFound %d files\n", len(allFiles))
@@ -97,7 +100,7 @@ func printUsage() {
 }
 
 // https://gohugo.io/content/front-matter/
-func checkHugoFrontmatter(reader *LineReader) (err error) {
+func checkHugoFrontmatter(reader *LineReader, file string) (err error) {
 	foundComment := false
 	for err == nil {
 		byteBuff, _, err := reader.ReadLine()
@@ -128,6 +131,8 @@ func checkHugoFrontmatter(reader *LineReader) (err error) {
 		}
 	}
 
+	allFiles[file].meta = make(map[string]string)
+
 	// read lines until `+++` ending
 	for err == nil {
 		byteBuff, _, err := reader.ReadLine()
@@ -140,6 +145,13 @@ func checkHugoFrontmatter(reader *LineReader) (err error) {
 			break
 		}
 		verboseLog("\t%s\n", buff)
+
+		meta := strings.SplitN(buff, "=", 2)
+		verboseLog("\t%d\t%v\n", len(meta), meta)
+		if len(meta) == 2 {
+			verboseLog("\t\t%s: %s\n", meta[0], meta[1])
+			allFiles[file].meta[strings.Trim(meta[0], " ")] = strings.Trim(meta[1], " ")
+		}
 	}
 	// remove trailing close comment
 	if foundComment {
@@ -158,6 +170,20 @@ func checkHugoFrontmatter(reader *LineReader) (err error) {
 		if foundComment {
 			reader.UnreadLine(buff)
 			return fmt.Errorf("Did not find expected close metadata comment")
+		}
+	}
+
+	// ensure that the minimum metadata keys are set
+	// ignore draft files
+	if draft, ok := allFiles[file].meta["draft"]; !ok || draft != "true" {
+		if _, ok := allFiles[file].meta["title"]; !ok {
+			return fmt.Errorf("Did not find `title` metadata element")
+		}
+		if _, ok := allFiles[file].meta["description"]; !ok {
+			return fmt.Errorf("Did not find `description` metadata element")
+		}
+		if _, ok := allFiles[file].meta["keywords"]; !ok {
+			return fmt.Errorf("Did not find `keywords` metadata element")
 		}
 	}
 	return nil
