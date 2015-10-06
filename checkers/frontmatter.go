@@ -11,7 +11,7 @@ import (
 )
 
 // https://gohugo.io/content/front-matter/
-func checkHugoFrontmatter(reader *linereader.LineReader, file string) (err error) {
+func CheckHugoFrontmatter(reader *linereader.LineReader, file string) (err error) {
 	foundComment := false
 	for err == nil {
 		byteBuff, _, err := reader.ReadLine()

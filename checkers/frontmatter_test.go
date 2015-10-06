@@ -53,7 +53,7 @@ func TestFrontmatterFound(t *testing.T) {
 	allFiles[file] = new(fileDetails)
 	allFiles[file].fullPath = file
 
-	err := checkHugoFrontmatter(ByteReader(OK_TOPIC), file)
+	err := CheckHugoFrontmatter(ByteReader(OK_TOPIC), file)
 
 	if err != nil {
 		t.Errorf("ERROR parsing: %v", err)
@@ -66,7 +66,7 @@ func TestFrontmatterError(t *testing.T) {
 	allFiles[file] = new(fileDetails)
 	allFiles[file].fullPath = file
 
-	err := checkHugoFrontmatter(ByteReader(MISSING_COMMENT_END_TOPIC), file)
+	err := CheckHugoFrontmatter(ByteReader(MISSING_COMMENT_END_TOPIC), file)
 
 	if err == nil {
 		t.Errorf("Expected error")

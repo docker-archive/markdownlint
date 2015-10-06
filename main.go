@@ -20,7 +20,7 @@ func main() {
 	}
 	dir := os.Args[1]
 
-	allFiles = make(map[string]*fileDetails)
+	data.AllFiles = make(map[string]*data.FileDetails)
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -36,8 +36,8 @@ func main() {
 			return err
 		}
 		// verboseLog("\t walked to %s\n", file)
-		allFiles[file] = new(fileDetails)
-		allFiles[file].fullPath = path
+		data.AllFiles[file] = new(data.FileDetails)
+		data.AllFiles[file].FullPath = path
 		return nil
 	})
 	if err != nil {
@@ -46,26 +46,26 @@ func main() {
 	}
 
 	errorCount := 0
-	for file, details := range allFiles {
+	for file, details := range data.AllFiles {
 		if !strings.HasSuffix(file, ".md") {
 			continue
 		}
 		data.VerboseLog(" %s\n", file)
 
-		reader, err := linereader.OpenReader(details.fullPath)
+		reader, err := linereader.OpenReader(details.FullPath)
 		if err != nil {
 			fmt.Printf("ERROR opening: %s\n", err)
 			errorCount++
 		}
 
-		err = checkers.checkHugoFrontmatter(reader, file)
+		err = checkers.CheckHugoFrontmatter(reader, file)
 		if err != nil {
 			fmt.Printf(" %s\n", file)
 			fmt.Printf("ERROR frontmatter: %s\n", err)
 			errorCount++
 		}
 
-		err = checkers.checkMarkdownLinks(reader, file)
+		err = checkers.CheckMarkdownLinks(reader, file)
 		if err != nil {
 			fmt.Printf(" %s\n", file)
 			fmt.Printf("ERROR links: %s\n", err)
@@ -77,7 +77,7 @@ func main() {
 	// TODO (JIRA: DOCS-181): Title, unique across products if not, file should include an {identifier}
 
 	fmt.Printf("Summary:\n")
-	fmt.Printf("\tFound %d files\n", len(allFiles))
+	fmt.Printf("\tFound %d files\n", len(data.AllFiles))
 	fmt.Printf("\tFound %d errors\n", errorCount)
 	// return the number of 404's to show that there are things to be fixed
 	os.Exit(errorCount)

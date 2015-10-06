@@ -46,6 +46,18 @@ func (r *LineReader) UnreadLine(str string) {
 	r.unreadLine = strings.Join([]string{str, r.unreadLine}, "\n")
 }
 
+func (r *LineReader) Read(p []byte) (l int, err error) {
+	offset := 0
+	if r.unreadLine != "" {
+		p = []byte(r.unreadLine)
+		offset = len(r.unreadLine)
+		p[offset] = '\n'
+		offset++
+	}
+	l, err = r.reader.Read(p[offset:])
+	return l, err
+}
+
 func (r *LineReader) Close() {
 	if r.file != nil {
 		r.file.Close()

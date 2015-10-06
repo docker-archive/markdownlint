@@ -9,16 +9,19 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-func checkMarkdownLinks(reader *linereader.LineReader, file string) (err error) {
+func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) {
 	// blackfriday.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters)
 	htmlFlags := 0
-	title := ""
-	var css string
 	renderer := &TestRenderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
 
 	extensions := 0
-	var output []byte
-	output = blackfriday.Markdown(reader.ReadAll(), renderer, extensions)
+	//var output []byte
+	buf := make([]byte, 32*1024)
+	length, err := reader.Read(buf)
+	if length == 0 || err != nil {
+		return err
+	}
+	_ = blackfriday.Markdown(buf, renderer, extensions)
 
 	return nil
 }
