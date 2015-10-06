@@ -22,3 +22,10 @@ type FileDetails struct {
 }
 
 var AllFiles map[string]*FileDetails
+
+type LinkDetails struct {
+	Count    int
+	Response int
+}
+
+var AllLinks map[string]*LinkDetails = make(map[string]*LinkDetails)

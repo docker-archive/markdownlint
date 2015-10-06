@@ -79,6 +79,7 @@ func main() {
 	fmt.Printf("Summary:\n")
 	fmt.Printf("\tFound %d files\n", len(data.AllFiles))
 	fmt.Printf("\tFound %d errors\n", errorCount)
+	checkers.LinksSummary()
 	// return the number of 404's to show that there are things to be fixed
 	os.Exit(errorCount)
 }
