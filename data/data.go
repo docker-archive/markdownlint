@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-var verbose = flag.Bool("v", false, "verbose log output")
+var verbose = flag.Bool("v", true, "verbose log output")
 
 func VerboseLog(format string, a ...interface{}) (n int, err error) {
 	if !*verbose {
