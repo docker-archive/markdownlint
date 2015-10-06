@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/SvenDowideit/makedownlint/linereader"
+	"github.com/SvenDowideit/markdownlint/linereader"
 
 	"github.com/russross/blackfriday"
 )

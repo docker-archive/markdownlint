@@ -6,6 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/SvenDowideit/markdownlint/data"
 	"github.com/SvenDowideit/markdownlint/linereader"
 )
 
@@ -19,29 +20,29 @@ func checkHugoFrontmatter(reader *linereader.LineReader, file string) (err error
 		}
 		buff := string(byteBuff)
 		if buff == "+++" {
-			verboseLog("Found TOML start")
+			data.VerboseLog("Found TOML start")
 			break
 		}
 		if strings.HasPrefix(buff, "<!--") {
 			if !strings.HasSuffix(buff, "-->") {
-				verboseLog("found comment start")
+				data.VerboseLog("found comment start")
 				foundComment = true
 				continue
 			}
 		}
-		//verboseLog("ReadLine: %s, %v, %s\n", string(byteBuff), isPrefix, err)
+		//data.VerboseLog("ReadLine: %s, %v, %s\n", string(byteBuff), isPrefix, err)
 		for i := 0; i < len(buff); {
 			runeValue, width := utf8.DecodeRuneInString(buff[i:])
 			if unicode.IsSpace(runeValue) {
 				i += width
 			} else {
-				verboseLog("Unexpected non-whitespace char: %s", buff)
+				data.VerboseLog("Unexpected non-whitespace char: %s", buff)
 				return fmt.Errorf("Unexpected non-whitespace char: %s", buff)
 			}
 		}
 	}
 
-	allFiles[file].meta = make(map[string]string)
+	data.AllFiles[file].Meta = make(map[string]string)
 
 	// read lines until `+++` ending
 	for err == nil {
@@ -51,16 +52,16 @@ func checkHugoFrontmatter(reader *linereader.LineReader, file string) (err error
 		}
 		buff := string(byteBuff)
 		if buff == "+++" {
-			verboseLog("Found TOML end")
+			data.VerboseLog("Found TOML end")
 			break
 		}
-		verboseLog("\t%s\n", buff)
+		data.VerboseLog("\t%s\n", buff)
 
 		meta := strings.SplitN(buff, "=", 2)
-		verboseLog("\t%d\t%v\n", len(meta), meta)
+		data.VerboseLog("\t%d\t%v\n", len(meta), meta)
 		if len(meta) == 2 {
-			verboseLog("\t\t%s: %s\n", meta[0], meta[1])
-			allFiles[file].meta[strings.Trim(meta[0], " ")] = strings.Trim(meta[1], " ")
+			data.VerboseLog("\t\t%s: %s\n", meta[0], meta[1])
+			data.AllFiles[file].Meta[strings.Trim(meta[0], " ")] = strings.Trim(meta[1], " ")
 		}
 	}
 	// remove trailing close comment
@@ -70,10 +71,10 @@ func checkHugoFrontmatter(reader *linereader.LineReader, file string) (err error
 			return err
 		}
 		buff := string(byteBuff)
-		verboseLog("is this a comment? (%s)\n", buff)
+		data.VerboseLog("is this a comment? (%s)\n", buff)
 		if strings.HasSuffix(buff, "-->") {
 			if !strings.HasPrefix(buff, "<!--") {
-				verboseLog("found comment end")
+				data.VerboseLog("found comment end")
 				foundComment = false
 			}
 		}
@@ -85,14 +86,14 @@ func checkHugoFrontmatter(reader *linereader.LineReader, file string) (err error
 
 	// ensure that the minimum metadata keys are set
 	// ignore draft files
-	if draft, ok := allFiles[file].meta["draft"]; !ok || draft != "true" {
-		if _, ok := allFiles[file].meta["title"]; !ok {
+	if draft, ok := data.AllFiles[file].Meta["draft"]; !ok || draft != "true" {
+		if _, ok := data.AllFiles[file].Meta["title"]; !ok {
 			return fmt.Errorf("Did not find `title` metadata element")
 		}
-		if _, ok := allFiles[file].meta["description"]; !ok {
+		if _, ok := data.AllFiles[file].Meta["description"]; !ok {
 			return fmt.Errorf("Did not find `description` metadata element")
 		}
-		if _, ok := allFiles[file].meta["keywords"]; !ok {
+		if _, ok := data.AllFiles[file].Meta["keywords"]; !ok {
 			return fmt.Errorf("Did not find `keywords` metadata element")
 		}
 	}

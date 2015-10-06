@@ -7,27 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/SvenDowideit/docscheck/checkers"
-	"github.com/SvenDowideit/docscheck/linereader"
+	"github.com/SvenDowideit/markdownlint/checkers"
+	"github.com/SvenDowideit/markdownlint/data"
+	"github.com/SvenDowideit/markdownlint/linereader"
 )
-
-var verbose = flag.Bool("v", false, "verbose log output")
-
-func verboseLog(format string, a ...interface{}) (n int, err error) {
-	if !*verbose {
-		return 0, nil
-	}
-	return fmt.Printf(format, a...)
-}
-
-// allFiles a lookup table of all the files in the 'docs' dir
-// also takes advantage of the random order to avoid testing markdown files in the same order.
-type fileDetails struct {
-	fullPath string
-	meta     map[string]string
-}
-
-var allFiles map[string]*fileDetails
 
 func main() {
 	flag.Parse()
@@ -67,7 +50,7 @@ func main() {
 		if !strings.HasSuffix(file, ".md") {
 			continue
 		}
-		verboseLog(" %s\n", file)
+		data.VerboseLog(" %s\n", file)
 
 		reader, err := linereader.OpenReader(details.fullPath)
 		if err != nil {
@@ -102,6 +85,6 @@ func main() {
 
 func printUsage() {
 	fmt.Println("Please specify a directory to check")
-	fmt.Println("\tfor example: docscheck .")
+	fmt.Println("\tfor example: markdownlint .")
 	flag.PrintDefaults()
 }
