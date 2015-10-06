@@ -1,5 +1,6 @@
 
-# docscheck
+# markdownlint
+
 Docker documentation source checker tool
 
 This tool ensures the markdown files its given are free from common errors.

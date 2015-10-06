@@ -3,11 +3,12 @@ FROM golang:1.4-cross
 ENV GOPATH /go
 ENV USER root
 
-WORKDIR /go/src/github.com/SvenDowideit/doccheck
+WORKDIR /go/src/github.com/SvenDowideit/markdownlint
 
 RUN go get github.com/russross/blackfriday
+run go get github.com/miekg/mmark
 
-ADD . /go/src/github.com/SvenDowideit/doccheck
+ADD . /go/src/github.com/SvenDowideit/markdownlint
 RUN go get -d -v
-RUN go build -o doccheck doccheck.go
+RUN go build -o markdownlint main.go
 
