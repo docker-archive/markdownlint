@@ -16,7 +16,7 @@ import (
 func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) {
 	// blackfriday.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters)
 	htmlFlags := 0
-	renderer := &TestRenderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
+	renderer := &TestRenderer{LinkFrom: file, Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
 
 	extensions := 0
 	//var output []byte
@@ -43,11 +43,14 @@ func LinksSummary() {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
 			fmt.Printf("\t\t(%d) %d links to %s\n", status, details.Count, link)
+			for from, _ := range data.AllLinks[link].LinksFrom {
+				fmt.Printf("\t\t\t[%s]\n", from)
+			}
 		}
 	}
 	fmt.Printf("\tTotal Links: %d\n", linkCount)
 	for status, count := range statusCount {
-		fmt.Printf("\t\t%d: %d times\n", status, count)
+		fmt.Printf("\t\t%d: %d times (%s)\n", status, count, data.ResponseCode[status])
 	}
 }
 
@@ -62,13 +65,18 @@ func testUrl(link string) int {
 		// Internal markdown link
 		// TODO: if it starts with a `#`, need to look for an anchor
 		// otherwuse, look in data.AllFiles
-		path := strings.Split(strings.Trim(link, "/"), "#")
-		relUrl := strings.Trim(path[0], "/")
-		if _, ok := data.AllFiles[relUrl]; ok {
-			return 2900
-		}
-		if _, ok := data.AllFiles[relUrl+".md"]; ok {
-			return 290
+		if strings.HasPrefix(link, "#") {
+			// internal link to an anchor//TODO: need to look for anchor
+			return 200
+		} else {
+			path := strings.Split(strings.Trim(link, "/"), "#")
+			relUrl := strings.Trim(path[0], "/")
+			if _, ok := data.AllFiles[relUrl]; ok {
+				return 2900
+			}
+			if _, ok := data.AllFiles[relUrl+".md"]; ok {
+				return 290
+			}
 		}
 		ok := 777
 		return ok
@@ -76,10 +84,15 @@ func testUrl(link string) int {
 		err = fmt.Errorf("%s", base.Scheme)
 		return 900
 	}
+	// http / https
+	if base.Host == "docs.docker.com" {
+		err = fmt.Errorf("avoid linking directly to %s", base.Host)
+		return 666
+	}
 	resp, err := http.Get(link)
 	if err != nil {
 		fmt.Println("ERROR: Failed to crawl \"" + link + "\"  " + err.Error())
-		return resp.StatusCode
+		return 888
 		//return 888
 	}
 
@@ -96,6 +109,7 @@ func testUrl(link string) int {
 }
 
 type TestRenderer struct {
+	LinkFrom string
 	*blackfriday.Html
 }
 
@@ -104,6 +118,8 @@ func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte
 	_, ok := data.AllLinks[link]
 	if !ok {
 		data.AllLinks[link] = new(data.LinkDetails)
+		data.AllLinks[link].LinksFrom = make(map[string]int)
 	}
+	data.AllLinks[link].LinksFrom[renderer.LinkFrom] = data.AllLinks[link].Count
 	data.AllLinks[link].Count++
 }

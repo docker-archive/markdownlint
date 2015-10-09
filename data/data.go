@@ -24,8 +24,21 @@ type FileDetails struct {
 var AllFiles map[string]*FileDetails
 
 type LinkDetails struct {
-	Count    int
-	Response int
+	Count     int
+	LinksFrom map[string]int
+	Response  int
+}
+
+var ResponseCode = map[int]string{
+	999:  "failed to parse",
+	888:  "failed to crawl",
+	2900: "local file path - ok",
+	900:  "mail/irc link, not checked",
+	200:  "ok",
+	777:  "source type path, but no match found",
+	290:  "local file path, but missing `.md`",
+	404:  "external url, but failed",
+	666:  "Don't link to docs.docker.com",
 }
 
 var AllLinks map[string]*LinkDetails = make(map[string]*LinkDetails)
