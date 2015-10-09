@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/SvenDowideit/markdownlint/data"
@@ -42,9 +44,9 @@ func LinksSummary() {
 		if status == 200 {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
-			fmt.Printf("\t\t(%d) %d links to %s\n", status, details.Count, link)
-			for from, _ := range data.AllLinks[link].LinksFrom {
-				fmt.Printf("\t\t\t[%s]\n", from)
+			fmt.Printf("\t\t(%d) %d links to (%s)\n", status, details.Count, link)
+			for i, from := range data.AllLinks[link].LinksFrom {
+				fmt.Printf("\t\t\tlink %s on page %s\n", data.AllLinks[link].ActualLink[i], from)
 			}
 		}
 	}
@@ -63,14 +65,15 @@ func testUrl(link string) int {
 	switch base.Scheme {
 	case "":
 		// Internal markdown link
-		// TODO: if it starts with a `#`, need to look for an anchor
 		// otherwuse, look in data.AllFiles
 		if strings.HasPrefix(link, "#") {
-			// internal link to an anchor//TODO: need to look for anchor
+			// internal link to an anchor
+			//TODO: need to look for anchor
 			return 200
 		} else {
-			path := strings.Split(strings.Trim(link, "/"), "#")
-			relUrl := strings.Trim(path[0], "/")
+			path := strings.Split(link, "#")
+			relUrl := path[0]
+			// TODO: need to test for path[1] anchor
 			if _, ok := data.AllFiles[relUrl]; ok {
 				return 2900
 			}
@@ -114,12 +117,32 @@ type TestRenderer struct {
 }
 
 func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte, content []byte) {
-	link := string(linkB)
+	actualLink := string(linkB)
+
+	var link string
+	if strings.HasPrefix(actualLink, "/") {
+		link = strings.TrimLeft(actualLink, "/")
+	} else {
+		// TODO: fix for relative paths.
+		// TODO: need to check the from links are all the same dir too
+		link = filepath.Clean(filepath.FromSlash(actualLink))
+
+		if strings.IndexRune(link, os.PathSeparator) == 0 { // filepath.IsAbs fails to me.
+			link = link[1:]
+		} else {
+			// TODO: need to check all the LinksFrom
+			link = filepath.Join(filepath.Dir(renderer.LinkFrom), link)
+		}
+		fmt.Printf("---- converted %s into %s\n", actualLink, link)
+	}
+
 	_, ok := data.AllLinks[link]
 	if !ok {
 		data.AllLinks[link] = new(data.LinkDetails)
-		data.AllLinks[link].LinksFrom = make(map[string]int)
+		data.AllLinks[link].LinksFrom = make(map[int]string)
+		data.AllLinks[link].ActualLink = make(map[int]string)
 	}
-	data.AllLinks[link].LinksFrom[renderer.LinkFrom] = data.AllLinks[link].Count
+	data.AllLinks[link].LinksFrom[data.AllLinks[link].Count] = renderer.LinkFrom
+	data.AllLinks[link].ActualLink[data.AllLinks[link].Count] = actualLink
 	data.AllLinks[link].Count++
 }

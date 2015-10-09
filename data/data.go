@@ -24,9 +24,10 @@ type FileDetails struct {
 var AllFiles map[string]*FileDetails
 
 type LinkDetails struct {
-	Count     int
-	LinksFrom map[string]int
-	Response  int
+	Count      int
+	LinksFrom  map[int]string
+	ActualLink map[int]string
+	Response   int
 }
 
 var ResponseCode = map[int]string{
