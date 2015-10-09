@@ -39,7 +39,11 @@ func LinksSummary() {
 		status := testUrl(link)
 		data.AllLinks[link].Response = status
 		statusCount[status]++
-		data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
+		if status == 200 {
+			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
+		} else {
+			fmt.Printf("\t\t(%d) %d links to %s\n", status, details.Count, link)
+		}
 	}
 	fmt.Printf("\tTotal Links: %d\n", linkCount)
 	for status, count := range statusCount {
@@ -56,9 +60,10 @@ func testUrl(link string) int {
 	switch base.Scheme {
 	case "":
 		// Internal markdown link
-		// if it starts with a `#`, need to look for an anchor
+		// TODO: if it starts with a `#`, need to look for an anchor
 		// otherwuse, look in data.AllFiles
-		relUrl := strings.Trim(link, "/")
+		path := strings.Split(strings.Trim(link, "/"), "#")
+		relUrl := strings.Trim(path[0], "/")
 		if _, ok := data.AllFiles[relUrl]; ok {
 			return 2900
 		}

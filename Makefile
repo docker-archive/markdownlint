@@ -19,7 +19,16 @@ docker: docker-build
 	docker run --name markdownlint-build markdownlint gzip markdownlint
 	docker cp markdownlint-build:/go/src/github.com/SvenDowideit/markdownlint/markdownlint.gz .
 	docker rm markdownlint-build
+	rm -f markdownlint
 	gunzip markdownlint.gz
 
 run:
 	./markdownlint .
+
+validate:
+	docker run \
+		-v $(CURDIR)/markdownlint:/usr/bin/markdownlint \
+		--volumes-from docsdockercom_data_1 \
+		--rm -it \
+			debian /usr/bin/markdownlint /docs/content/
+

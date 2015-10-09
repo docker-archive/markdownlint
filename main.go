@@ -14,11 +14,12 @@ import (
 
 func main() {
 	flag.Parse()
-	if len(os.Args) < 2 {
+	args := flag.Args()
+	if len(args) < 1 {
 		printUsage()
 		os.Exit(-1)
 	}
-	dir := os.Args[1]
+	dir := args[0]
 
 	data.AllFiles = make(map[string]*data.FileDetails)
 
