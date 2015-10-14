@@ -120,20 +120,26 @@ func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte
 	actualLink := string(linkB)
 
 	var link string
-	if strings.HasPrefix(actualLink, "/") {
-		link = strings.TrimLeft(actualLink, "/")
-	} else {
-		// TODO: fix for relative paths.
-		// TODO: need to check the from links are all the same dir too
-		link = filepath.Clean(filepath.FromSlash(actualLink))
 
-		if strings.IndexRune(link, os.PathSeparator) == 0 { // filepath.IsAbs fails to me.
-			link = link[1:]
+	base, err := url.Parse(actualLink)
+	if err == nil && base.Scheme == "" {
+		if strings.HasPrefix(actualLink, "/") {
+			link = strings.TrimLeft(actualLink, "/")
 		} else {
-			// TODO: need to check all the LinksFrom
-			link = filepath.Join(filepath.Dir(renderer.LinkFrom), link)
+			// TODO: fix for relative paths.
+			// TODO: need to check the from links are all the same dir too
+			link = filepath.Clean(filepath.FromSlash(actualLink))
+
+			if strings.IndexRune(link, os.PathSeparator) == 0 { // filepath.IsAbs fails to me.
+				link = link[1:]
+			} else {
+				// TODO: need to check all the LinksFrom
+				link = filepath.Join(filepath.Dir(renderer.LinkFrom), link)
+			}
+			fmt.Printf("---- converted %s into %s\n", actualLink, link)
 		}
-		fmt.Printf("---- converted %s into %s\n", actualLink, link)
+	} else {
+		link = actualLink
 	}
 
 	_, ok := data.AllLinks[link]

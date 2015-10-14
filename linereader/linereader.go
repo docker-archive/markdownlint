@@ -49,7 +49,7 @@ func (r *LineReader) UnreadLine(str string) {
 func (r *LineReader) Read(p []byte) (l int, err error) {
 	offset := 0
 	if r.unreadLine != "" {
-		p = []byte(r.unreadLine)
+		copy(p, r.unreadLine)
 		offset = len(r.unreadLine)
 		p[offset] = '\n'
 		offset++

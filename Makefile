@@ -8,6 +8,9 @@ COMMIT_HASH=`git rev-parse --short HEAD 2>/dev/null`
 BUILD_DATE=`date +%FT%T%z`
 LDFLAGS=-ldflags "-X github.com/spf13/hugo/hugolib.CommitHash=${COMMIT_HASH} -X github.com/spf13/hugo/hugolib.BuildDate=${BUILD_DATE}"
 
+build:
+	go build -o markdownlint main.go
+
 shell: docker-build
 	docker run --rm -it -v $(CURDIR):/go/src/github.com/SvenDowideit/markdownlint markdownlint bash
 
