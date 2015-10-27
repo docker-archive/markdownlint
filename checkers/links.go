@@ -116,6 +116,10 @@ type TestRenderer struct {
 	*blackfriday.Html
 }
 
+func (renderer *TestRenderer) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+	renderer.Link(out, link, title, alt)
+}
+
 func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte, content []byte) {
 	actualLink := string(linkB)
 
@@ -136,7 +140,7 @@ func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte
 				// TODO: need to check all the LinksFrom
 				link = filepath.Join(filepath.Dir(renderer.LinkFrom), link)
 			}
-			fmt.Printf("---- converted %s into %s\n", actualLink, link)
+			fmt.Printf("---- converted %s (on page %s, in %s) into %s\n", actualLink, renderer.LinkFrom, filepath.Dir(renderer.LinkFrom), link)
 		}
 	} else {
 		link = actualLink

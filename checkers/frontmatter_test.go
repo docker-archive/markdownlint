@@ -1,6 +1,11 @@
 package checkers
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/SvenDowideit/markdownlint/data"
+	"github.com/SvenDowideit/markdownlint/linereader"
+)
 
 // NOTE: this has some spaces and tabs as well as newlines at the start. this is intentional
 const OK_TOPIC = `
@@ -49,11 +54,11 @@ parent = "mn_reference"
 
 func TestFrontmatterFound(t *testing.T) {
 	file := "ok"
-	allFiles = make(map[string]*fileDetails)
-	allFiles[file] = new(fileDetails)
-	allFiles[file].fullPath = file
+	data.AllFiles = make(map[string]*data.FileDetails)
+	data.AllFiles[file] = new(data.FileDetails)
+	data.AllFiles[file].FullPath = file
 
-	err := CheckHugoFrontmatter(ByteReader(OK_TOPIC), file)
+	err := CheckHugoFrontmatter(linereader.ByteReader(OK_TOPIC), file)
 
 	if err != nil {
 		t.Errorf("ERROR parsing: %v", err)
@@ -62,11 +67,11 @@ func TestFrontmatterFound(t *testing.T) {
 
 func TestFrontmatterError(t *testing.T) {
 	file := "missing"
-	allFiles = make(map[string]*fileDetails)
-	allFiles[file] = new(fileDetails)
-	allFiles[file].fullPath = file
+	data.AllFiles = make(map[string]*data.FileDetails)
+	data.AllFiles[file] = new(data.FileDetails)
+	data.AllFiles[file].FullPath = file
 
-	err := CheckHugoFrontmatter(ByteReader(MISSING_COMMENT_END_TOPIC), file)
+	err := CheckHugoFrontmatter(linereader.ByteReader(MISSING_COMMENT_END_TOPIC), file)
 
 	if err == nil {
 		t.Errorf("Expected error")
