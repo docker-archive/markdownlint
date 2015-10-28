@@ -21,7 +21,22 @@ type FileDetails struct {
 	Meta     map[string]string
 }
 
-var AllFiles map[string]*FileDetails
+func NewFileDetails(file, path string) *FileDetails {
+	detail := new(FileDetails)
+	detail.FullPath = path
+	detail.Meta = make(map[string]string)
+	return detail
+}
+
+type BigMap map[string]*FileDetails
+
+var AllFiles BigMap
+
+func AddFile(file, path string) {
+	if _, ok := AllFiles[file]; !ok {
+		AllFiles[file] = NewFileDetails(file, path)
+	}
+}
 
 type LinkDetails struct {
 	Count      int

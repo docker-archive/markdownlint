@@ -37,8 +37,7 @@ func main() {
 			return err
 		}
 		// verboseLog("\t walked to %s\n", file)
-		data.AllFiles[file] = new(data.FileDetails)
-		data.AllFiles[file].FullPath = path
+		data.AddFile(file, path)
 		return nil
 	})
 	if err != nil {

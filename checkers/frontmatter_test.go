@@ -55,8 +55,7 @@ parent = "mn_reference"
 func TestFrontmatterFound(t *testing.T) {
 	file := "ok"
 	data.AllFiles = make(map[string]*data.FileDetails)
-	data.AllFiles[file] = new(data.FileDetails)
-	data.AllFiles[file].FullPath = file
+	data.AddFile(file, file)
 
 	err := CheckHugoFrontmatter(linereader.ByteReader(OK_TOPIC), file)
 
@@ -68,8 +67,7 @@ func TestFrontmatterFound(t *testing.T) {
 func TestFrontmatterError(t *testing.T) {
 	file := "missing"
 	data.AllFiles = make(map[string]*data.FileDetails)
-	data.AllFiles[file] = new(data.FileDetails)
-	data.AllFiles[file].FullPath = file
+	data.AddFile(file, file)
 
 	err := CheckHugoFrontmatter(linereader.ByteReader(MISSING_COMMENT_END_TOPIC), file)
 
