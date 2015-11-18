@@ -143,7 +143,9 @@ func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte
 
 	base, err := url.Parse(actualLink)
 	if err == nil && base.Scheme == "" {
-		if strings.HasPrefix(actualLink, "/") {
+		if strings.HasPrefix(actualLink, "#") {
+			link = actualLink
+		} else if strings.HasPrefix(actualLink, "/") {
 			link = strings.TrimLeft(actualLink, "/")
 		} else {
 			// TODO: fix for relative paths.
