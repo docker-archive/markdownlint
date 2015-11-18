@@ -45,6 +45,7 @@ func main() {
 		os.Exit(-1)
 	}
 
+	frontmatterErrors := ""
 	errorCount := 0
 	for file, details := range data.AllFiles {
 		if !strings.HasSuffix(file, ".md") {
@@ -60,26 +61,31 @@ func main() {
 
 		err = checkers.CheckHugoFrontmatter(reader, file)
 		if err != nil {
-			fmt.Printf(" %s\n", file)
-			fmt.Printf("ERROR frontmatter: %s\n", err)
+			frontmatterErrors = fmt.Sprintf("%sfrontmatter: (%s) %s\n", frontmatterErrors, file, err)
+			fmt.Printf("ERROR (%s) frontmatter: %s\n", file, err)
 			errorCount++
 		}
 
 		err = checkers.CheckMarkdownLinks(reader, file)
 		if err != nil {
-			fmt.Printf(" %s\n", file)
-			fmt.Printf("ERROR links: %s\n", err)
+			// this only errors if there is a fatal issue
+			fmt.Printf("ERROR (%s) links: %s\n", file, err)
 			errorCount++
 		}
 		reader.Close()
 	}
+	checkers.LinksSummary()
 
 	// TODO (JIRA: DOCS-181): Title, unique across products if not, file should include an {identifier}
 
+	fmt.Printf("\n======================\n")
 	fmt.Printf("Summary:\n")
+	fmt.Printf(frontmatterErrors)
+	count, linkErr := checkers.LinkErrors()
+	errorCount = errorCount + count
+	fmt.Printf(linkErr)
 	fmt.Printf("\tFound %d files\n", len(data.AllFiles))
 	fmt.Printf("\tFound %d errors\n", errorCount)
-	checkers.LinksSummary()
 	// return the number of 404's to show that there are things to be fixed
 	os.Exit(errorCount)
 }
