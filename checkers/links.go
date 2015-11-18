@@ -32,9 +32,25 @@ func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) 
 	return nil
 }
 
-// TODO: consider making the Summary function return the summary string, so it can continue processing.
+var statusCount = make(map[int]int)
+
+func LinkErrors(filter string) (int, string) {
+	errorCount := 0
+	errorString := ""
+	for link, details := range data.AllLinks {
+		if details.Response == 777 {
+			for i, file := range data.AllLinks[link].LinksFrom {
+				if strings.HasPrefix(file, filter) {
+					errorCount++
+					errorString = fmt.Sprintf("%slink error: (in page %s) %s\n", errorString, file, data.AllLinks[link].ActualLink[i])
+				}
+			}
+		}
+	}
+	return errorCount, errorString
+}
+
 func LinksSummary() {
-	var statusCount = make(map[int]int)
 	linkCount := 0
 	for link, details := range data.AllLinks {
 		linkCount++
@@ -45,8 +61,8 @@ func LinksSummary() {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
 			fmt.Printf("\t\t(%d) %d links to (%s)\n", status, details.Count, link)
-			for i, from := range data.AllLinks[link].LinksFrom {
-				fmt.Printf("\t\t\tlink %s on page %s\n", data.AllLinks[link].ActualLink[i], from)
+			for i, file := range data.AllLinks[link].LinksFrom {
+				fmt.Printf("\t\t\tlink %s on page %s\n", data.AllLinks[link].ActualLink[i], file)
 			}
 		}
 	}
@@ -140,7 +156,7 @@ func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte
 				// TODO: need to check all the LinksFrom
 				link = filepath.Join(filepath.Dir(renderer.LinkFrom), link)
 			}
-			fmt.Printf("---- converted %s (on page %s, in %s) into %s\n", actualLink, renderer.LinkFrom, filepath.Dir(renderer.LinkFrom), link)
+			data.VerboseLog("---- converted %s (on page %s, in %s) into %s\n", actualLink, renderer.LinkFrom, filepath.Dir(renderer.LinkFrom), link)
 		}
 	} else {
 		link = actualLink
