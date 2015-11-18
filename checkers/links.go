@@ -34,14 +34,16 @@ func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) 
 
 var statusCount = make(map[int]int)
 
-func LinkErrors() (int, string) {
+func LinkErrors(filter string) (int, string) {
 	errorCount := 0
 	errorString := ""
 	for link, details := range data.AllLinks {
 		if details.Response == 777 {
-			for i, from := range data.AllLinks[link].LinksFrom {
-				errorCount++
-				errorString = fmt.Sprintf("%slink error: (in page %s) %s\n", errorString, from, data.AllLinks[link].ActualLink[i])
+			for i, file := range data.AllLinks[link].LinksFrom {
+				if strings.HasPrefix(file, filter) {
+					errorCount++
+					errorString = fmt.Sprintf("%slink error: (in page %s) %s\n", errorString, file, data.AllLinks[link].ActualLink[i])
+				}
 			}
 		}
 	}
@@ -59,8 +61,8 @@ func LinksSummary() {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
 			fmt.Printf("\t\t(%d) %d links to (%s)\n", status, details.Count, link)
-			for i, from := range data.AllLinks[link].LinksFrom {
-				fmt.Printf("\t\t\tlink %s on page %s\n", data.AllLinks[link].ActualLink[i], from)
+			for i, file := range data.AllLinks[link].LinksFrom {
+				fmt.Printf("\t\t\tlink %s on page %s\n", data.AllLinks[link].ActualLink[i], file)
 			}
 		}
 	}
