@@ -32,6 +32,7 @@ func main() {
 			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
+		data.VerboseLog("FOUND: %s\n", path)
 		if info.IsDir() {
 			return nil
 		}
@@ -53,9 +54,10 @@ func main() {
 	errorCount := 0
 	for file, details := range data.AllFiles {
 		if !strings.HasSuffix(file, ".md") {
+			data.VerboseLog("SKIPPING: %s\n", file)
 			continue
 		}
-		data.VerboseLog(" %s\n", file)
+		data.VerboseLog("PROCESSING: %s\n", file)
 
 		reader, err := linereader.OpenReader(details.FullPath)
 		if err != nil {

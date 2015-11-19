@@ -74,7 +74,7 @@ func CheckHugoFrontmatter(reader *linereader.LineReader, file string) (err error
 		data.VerboseLog("is this a comment? (%s)\n", buff)
 		if strings.HasSuffix(buff, "-->") {
 			if !strings.HasPrefix(buff, "<!--") {
-				data.VerboseLog("found comment end")
+				data.VerboseLog("found comment end\n")
 				foundComment = false
 			}
 		}

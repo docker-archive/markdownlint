@@ -12,22 +12,42 @@ import (
 	"github.com/SvenDowideit/markdownlint/data"
 	"github.com/SvenDowideit/markdownlint/linereader"
 
-	"github.com/russross/blackfriday"
+	"github.com/miekg/mmark"
 )
 
 func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) {
-	// blackfriday.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters)
+	// mmark.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters)
 	htmlFlags := 0
-	renderer := &TestRenderer{LinkFrom: file, Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
+	htmlFlags |= mmark.HTML_FOOTNOTE_RETURN_LINKS
 
-	extensions := 0
+	renderParameters := mmark.HtmlRendererParameters{
+	//		FootnoteAnchorPrefix:       viper.GetString("FootnoteAnchorPrefix"),
+	//		FootnoteReturnLinkContents: viper.GetString("FootnoteReturnLinkContents"),
+	}
+
+	renderer := &TestRenderer{
+		LinkFrom: file,
+		Renderer: mmark.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters),
+	}
+
+	extensions := 0 |
+		//mmark.EXTENSION_NO_INTRA_EMPHASIS |
+		mmark.EXTENSION_TABLES | mmark.EXTENSION_FENCED_CODE |
+		mmark.EXTENSION_AUTOLINK |
+		//mmark.EXTENSION_STRIKETHROUGH |
+		mmark.EXTENSION_SPACE_HEADERS | mmark.EXTENSION_FOOTNOTES |
+		mmark.EXTENSION_HEADER_IDS | mmark.EXTENSION_AUTO_HEADER_IDS //|
+	//	mmark.EXTENSION_DEFINITION_LISTS
+
 	//var output []byte
-	buf := make([]byte, 32*1024)
+	buf := make([]byte, 1024*1024)
 	length, err := reader.Read(buf)
 	if length == 0 || err != nil {
 		return err
 	}
-	_ = blackfriday.Markdown(buf, renderer, extensions)
+	data.VerboseLog("RUNNING Markdown on %s length(%d) - not counting frontmater\n", file, length)
+	_ = mmark.Parse(buf, renderer, extensions)
+	data.VerboseLog("FINISHED Markdown on %s\n", file)
 
 	return nil
 }
@@ -129,15 +149,16 @@ func testUrl(link string) int {
 
 type TestRenderer struct {
 	LinkFrom string
-	*blackfriday.Html
+	mmark.Renderer
 }
 
-func (renderer *TestRenderer) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (renderer *TestRenderer) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subFigure bool) {
 	renderer.Link(out, link, title, alt)
 }
 
 func (renderer *TestRenderer) Link(out *bytes.Buffer, linkB []byte, title []byte, content []byte) {
 	actualLink := string(linkB)
+	data.VerboseLog("Link [%s](%s) in file %s\n", string(content), actualLink, renderer.LinkFrom)
 
 	var link string
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/SvenDowideit/markdownlint/data"
-	"github.com/russross/blackfriday"
+	"github.com/miekg/mmark"
 )
 
 func TestMarkdownLinks(t *testing.T) {
@@ -15,7 +15,7 @@ func TestMarkdownLinks(t *testing.T) {
 	data.AddFile(file, file)
 
 	htmlFlags := 0
-	renderer := &TestRenderer{LinkFrom: file, Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
+	renderer := &TestRenderer{LinkFrom: file, Html: mmark.HtmlRenderer(htmlFlags, "", "").(*mmark.Html)}
 	out := bytes.NewBuffer(make([]byte, 1024))
 
 	tests := map[string]string{
