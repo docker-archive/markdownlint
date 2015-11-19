@@ -2,6 +2,8 @@ package linereader
 
 import (
 	"bufio"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -54,7 +56,12 @@ func (r *LineReader) Read(p []byte) (l int, err error) {
 		p[offset] = '\n'
 		offset++
 	}
-	l, err = r.reader.Read(p[offset:])
+	buff, err := ioutil.ReadAll(r.reader)
+	cl := copy(p[offset:], buff[0:])
+	if cl != len(buff) && err == nil {
+		err = fmt.Errorf("supplied buffer (%d) too small to fit remainder of file (%d), only copied %d", len(p), offset+len(buff), cl)
+	}
+	l = offset + cl
 	return l, err
 }
 
