@@ -55,7 +55,7 @@ func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) 
 
 var statusCount = make(map[int]int)
 
-func LinkErrors(filter string) (int, string) {
+func LinkSummary(filter string) (int, string) {
 	errorCount := 0
 	errorString := ""
 	for link, details := range data.AllLinks {
@@ -63,7 +63,7 @@ func LinkErrors(filter string) (int, string) {
 			for i, file := range data.AllLinks[link].LinksFrom {
 				if strings.HasPrefix(file, filter) {
 					errorCount++
-					errorString = fmt.Sprintf("%slink error: (in page %s) %s\n", errorString, file, data.AllLinks[link].ActualLink[i])
+					errorString = fmt.Sprintf("%s* link error: (in page %s) %s\n", errorString, file, data.AllLinks[link].ActualLink[i])
 				}
 			}
 		}
@@ -71,26 +71,26 @@ func LinkErrors(filter string) (int, string) {
 	return errorCount, errorString
 }
 
-func LinksSummary() {
+func TestLinks() {
 	linkCount := 0
 	for link, details := range data.AllLinks {
 		linkCount++
 		status := testUrl(link)
 		data.AllLinks[link].Response = status
 		statusCount[status]++
-		if status == 200 {
+		if status == 200 || status == 2900 {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
-			fmt.Printf("\t\t(%d) %d links to (%s)\n", status, details.Count, link)
+			fmt.Printf("\t\t (%d) %d links to (%s)\n", status, details.Count, link)
 			for i, file := range data.AllLinks[link].LinksFrom {
-				fmt.Printf("\t\t\tlink %s on page %s\n", data.AllLinks[link].ActualLink[i], file)
+				fmt.Printf("\t\t\t link %s on page %s\n", data.AllLinks[link].ActualLink[i], file)
 			}
 		}
 	}
-	fmt.Printf("\tTotal Links: %d\n", linkCount)
 	for status, count := range statusCount {
-		fmt.Printf("\t\t%d: %d times (%s)\n", status, count, data.ResponseCode[status])
+		fmt.Printf("\t%d: %d times (%s)\n", status, count, data.ResponseCode[status])
 	}
+	fmt.Printf("\tTotal Links: %d\n", linkCount)
 }
 
 func testUrl(link string) int {

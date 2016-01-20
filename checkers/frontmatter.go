@@ -12,6 +12,16 @@ import (
 
 // https://gohugo.io/content/front-matter/
 func CheckHugoFrontmatter(reader *linereader.LineReader, file string) (err error) {
+	err = doCheckHugoFrontmatter(reader, file)
+	if err != nil {
+		data.AllFiles[file].FormatErrors = fmt.Sprintf("%s* frontmatter: (%s) %s\n", data.AllFiles[file].FormatErrors, file, err)
+		data.AllFiles[file].FormatErrorCount++
+
+	}
+	return err
+}
+
+func doCheckHugoFrontmatter(reader *linereader.LineReader, file string) (err error) {
 	foundComment := false
 	for err == nil {
 		byteBuff, _, err := reader.ReadLine()
@@ -98,4 +108,16 @@ func CheckHugoFrontmatter(reader *linereader.LineReader, file string) (err error
 		}
 	}
 	return nil
+}
+
+func FrontSummary(filter string) (int, string) {
+	errorCount := 0
+	errorString := ""
+	for file, details := range data.AllFiles {
+		if strings.HasPrefix(file, filter) {
+			errorCount += details.FormatErrorCount
+			errorString = fmt.Sprintf("%s%s", errorString, details.FormatErrors)
+		}
+	}
+	return errorCount, errorString
 }
