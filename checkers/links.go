@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/SvenDowideit/markdownlint/data"
 	"github.com/SvenDowideit/markdownlint/linereader"
@@ -128,7 +129,10 @@ func testUrl(link string) int {
 		err = fmt.Errorf("avoid linking directly to %s", base.Host)
 		return 666
 	}
-	resp, err := http.Get(link)
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := httpClient.Get(link)
 	if err != nil {
 		fmt.Println("ERROR: Failed to crawl \"" + link + "\"  " + err.Error())
 		return 888

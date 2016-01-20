@@ -15,7 +15,12 @@ func TestMarkdownLinks(t *testing.T) {
 	data.AddFile(file, file)
 
 	htmlFlags := 0
-	renderer := &TestRenderer{LinkFrom: file, Html: mmark.HtmlRenderer(htmlFlags, "", "").(*mmark.Html)}
+	renderParameters := mmark.HtmlRendererParameters{}
+	renderer := &TestRenderer{
+		LinkFrom: file,
+		//Html:     mmark.HtmlRenderer(htmlFlags, "", "").(*mmark.Html),
+		Renderer: mmark.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters),
+	}
 	out := bytes.NewBuffer(make([]byte, 1024))
 
 	tests := map[string]string{
