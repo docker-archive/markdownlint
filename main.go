@@ -27,6 +27,7 @@ func main() {
 
 	data.AllFiles = make(map[string]*data.FileDetails)
 
+	fmt.Println("Finding files")
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
@@ -50,56 +51,70 @@ func main() {
 		os.Exit(-1)
 	}
 
-	frontmatterErrors := ""
-	errorCount := 0
 	for file, details := range data.AllFiles {
+		if !strings.HasPrefix(file, filter) {
+			data.VerboseLog("FILTERED: %s\n", file)
+			continue
+		}
 		if !strings.HasSuffix(file, ".md") {
 			data.VerboseLog("SKIPPING: %s\n", file)
 			continue
 		}
-		data.VerboseLog("PROCESSING: %s\n", file)
+		fmt.Printf("opening: %s\n", file)
 
 		reader, err := linereader.OpenReader(details.FullPath)
 		if err != nil {
 			fmt.Printf("ERROR opening: %s\n", err)
-			errorCount++
+			data.AllFiles[file].FormatErrorCount++
 		}
 
 		err = checkers.CheckHugoFrontmatter(reader, file)
 		if err != nil {
 			fmt.Printf("ERROR (%s) frontmatter: %s\n", file, err)
-			if strings.HasPrefix(file, filter) {
-				frontmatterErrors = fmt.Sprintf("%sfrontmatter: (%s) %s\n", frontmatterErrors, file, err)
-				errorCount++
-			}
 		}
 
 		err = checkers.CheckMarkdownLinks(reader, file)
 		if err != nil {
 			// this only errors if there is a fatal issue
 			fmt.Printf("ERROR (%s) links: %s\n", file, err)
-			errorCount++
+			data.AllFiles[file].FormatErrorCount++
 		}
 		reader.Close()
 	}
-	checkers.LinksSummary()
+	checkers.TestLinks()
 
 	// TODO (JIRA: DOCS-181): Title, unique across products if not, file should include an {identifier}
 
-	fmt.Printf("\n======================\n")
-	if filter != "" {
-		fmt.Printf("Filtered (%s) Summary:\n\n", filter)
-	} else {
-		fmt.Printf("Summary:\n\n")
+	summaryFileName := "markdownlint.summary.txt"
+	f, err := os.Create(summaryFileName)
+	if err == nil {
+		fmt.Printf("Also writing summary to %s :\n\n", summaryFileName)
+		defer f.Close()
 	}
-	fmt.Printf(frontmatterErrors)
-	count, linkErr := checkers.LinkErrors(filter)
-	errorCount = errorCount + count
-	fmt.Printf(linkErr)
-	fmt.Printf("\n\tFound %d files\n", len(data.AllFiles))
-	fmt.Printf("\tFound %d errors\n", errorCount)
+
+	if filter != "" {
+		Printf(f, "# Filtered (%s) Summary:\n\n", filter)
+	} else {
+		Printf(f, "# Summary:\n\n")
+	}
+	errorCount, errorString := checkers.FrontSummary(filter)
+	Printf(f, errorString)
+	count, errorString := checkers.LinkSummary(filter)
+	errorCount += count
+	Printf(f, errorString)
+	Printf(f, "\n\tFound: %d files\n", len(data.AllFiles))
+	Printf(f, "\tFound: %d errors\n", errorCount)
 	// return the number of 404's to show that there are things to be fixed
 	os.Exit(errorCount)
+}
+
+func Printf(f *os.File, format string, a ...interface{}) {
+	str := fmt.Sprintf(format, a...)
+	fmt.Print(str)
+	if f != nil {
+		// Don't reall want to know we can't write..
+		f.WriteString(str)
+	}
 }
 
 func printUsage() {

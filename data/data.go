@@ -17,14 +17,18 @@ func VerboseLog(format string, a ...interface{}) (n int, err error) {
 // allFiles a lookup table of all the files in the 'docs' dir
 // also takes advantage of the random order to avoid testing markdown files in the same order.
 type FileDetails struct {
-	FullPath string
-	Meta     map[string]string
+	FullPath         string
+	Meta             map[string]string
+	FormatErrors     string
+	FormatErrorCount int
 }
 
 func NewFileDetails(file, path string) *FileDetails {
 	detail := new(FileDetails)
 	detail.FullPath = path
 	detail.Meta = make(map[string]string)
+	detail.FormatErrors = ""
+	detail.FormatErrorCount = 0
 	return detail
 }
 
