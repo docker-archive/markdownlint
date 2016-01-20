@@ -1,4 +1,4 @@
-FROM golang:1.4-cross
+FROM golang
 
 ENV GOPATH /go
 ENV USER root
@@ -10,6 +10,6 @@ run go get github.com/miekg/mmark
 
 ADD . /go/src/github.com/SvenDowideit/markdownlint
 RUN go get -d -v
-RUN go build -o markdownlint main.go
+RUN go build --race -o markdownlint main.go
 RUN go test -v ./...
 
