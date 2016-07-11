@@ -59,6 +59,7 @@ var ResponseCode = map[int]string{
 	290:  "local file path, but missing `.md`",
 	404:  "external url, but failed",
 	666:  "Don't link to docs.docker.com",
+	299:  "Skipped due to filter",
 }
 
 var AllLinks map[string]*LinkDetails = make(map[string]*LinkDetails)
