@@ -41,7 +41,7 @@ func TestMarkdownLinks(t *testing.T) {
 	}
 
 	for link, details := range data.AllLinks {
-		data.AllLinks[link].Response = testUrl(link)
+		data.AllLinks[link].Response = testUrl(link, "")
 		//fmt.Printf("\t\t(%d) %d links to %s\n", data.AllLinks[link].Response, details.Count, link)
 		fmt.Printf("%s links to %s\n", details.ActualLink[0], link)
 		if _, ok := data.AllFiles[link]; !ok {

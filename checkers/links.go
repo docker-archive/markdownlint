@@ -92,11 +92,11 @@ func LinkSummary(filter string) (int, string) {
 	return errorCount, errorString
 }
 
-func TestLinks() {
+func TestLinks(filter string) {
 	linkCount := 0
 	for link, details := range data.AllLinks {
 		linkCount++
-		status := testUrl(link)
+		status := testUrl(link, filter)
 		data.AllLinks[link].Response = status
 		statusCount[status]++
 		if status == 200 ||
@@ -118,7 +118,7 @@ func TestLinks() {
 	fmt.Printf("\tTotal Links: %d\n", linkCount)
 }
 
-func testUrl(link string) int {
+func testUrl(link, filter string) int {
 	if _, ok := skipUrls[link]; ok {
 		fmt.Printf("Skipping: %s\n", link)
 		return 299
@@ -139,6 +139,10 @@ func testUrl(link string) int {
 		} else {
 			path := strings.Split(link, "#")
 			relUrl := path[0]
+			if !strings.HasPrefix(relUrl, filter) {
+				//fmt.Printf("Filtered(%s): %s\n", filter, link)
+				return 299
+			}
 			// TODO: need to test for path[1] anchor
 			if _, ok := data.AllFiles[relUrl]; ok {
 				return 2900
