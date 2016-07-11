@@ -16,6 +16,20 @@ import (
 	"github.com/miekg/mmark"
 )
 
+var skipUrls = map[string]int{
+	"https://build.opensuse.org/project/show/Virtualization:containers": 1,
+	"https://build.opensuse.org/":                                       1,
+	"https://linux.oracle.com":                                          1,
+	"http://supervisord.org/":                                           1,
+	"http://goo.gl/HSz8UT":                                              1,
+	"https://www.linkedin.com/company/docker":                           1,
+	"https://cloud.docker.com/stack/deploy/":                            1,
+	"https://cloud.docker.com/account/":                                 1,
+	"https://reddit.com/r/docker":                                       1,
+	"https://www.reddit.com/r/docker":                                   1,
+}
+
+
 func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) {
 	// mmark.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters)
 	htmlFlags := 0
@@ -56,10 +70,17 @@ func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) 
 var statusCount = make(map[int]int)
 
 func LinkSummary(filter string) (int, string) {
+	okCount := 0
 	errorCount := 0
 	errorString := ""
 	for link, details := range data.AllLinks {
-		if details.Response == 777 {
+		if details.Response == 200 ||
+			details.Response == 900 ||
+			details.Response == 299 ||
+			details.Response == 2900 ||
+			details.Response == 666 {
+			okCount++
+		} else {
 			for i, file := range data.AllLinks[link].LinksFrom {
 				if strings.HasPrefix(file, filter) {
 					errorCount++
@@ -78,7 +99,11 @@ func TestLinks() {
 		status := testUrl(link)
 		data.AllLinks[link].Response = status
 		statusCount[status]++
-		if status == 200 || status == 2900 {
+		if status == 200 ||
+			details.Response == 900 ||
+			details.Response == 299 ||
+			status == 2900 ||
+			status == 666 {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
 			fmt.Printf("\t\t (%d) %d links to (%s)\n", status, details.Count, link)
@@ -94,6 +119,10 @@ func TestLinks() {
 }
 
 func testUrl(link string) int {
+	if _, ok := skipUrls[link]; ok {
+		fmt.Printf("Skipping: %s\n", link)
+		return 299
+	}
 	base, err := url.Parse(link)
 	if err != nil {
 		fmt.Println("ERROR: failed to Parse \"" + link + "\"")
@@ -117,6 +146,7 @@ func testUrl(link string) int {
 			if _, ok := data.AllFiles[relUrl+".md"]; ok {
 				return 290
 			}
+			fmt.Printf("\t\tERROR: failed to find %s or %s.md\n", relUrl, relUrl)
 		}
 		ok := 777
 		return ok
