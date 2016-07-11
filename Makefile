@@ -15,15 +15,15 @@ shell: docker-build
 	docker run --rm -it -v $(CURDIR):/go/src/github.com/SvenDowideit/markdownlint markdownlint bash
 
 docker-build:
-	rm -f markdownlint.gz
+	rm -f markdownlint.zip
 	docker build -t markdownlint .
 
 docker: docker-build
-	docker run --name markdownlint-build markdownlint gzip markdownlint
-	docker cp markdownlint-build:/go/src/github.com/SvenDowideit/markdownlint/markdownlint.gz .
-	docker rm markdownlint-build
+	docker rm markdownlint-build || true
+	docker run --name markdownlint-build markdownlint ls
+	docker cp markdownlint-build:/go/src/github.com/SvenDowideit/markdownlint/markdownlint.zip .
 	rm -f markdownlint
-	gunzip markdownlint.gz
+	unzip -o markdownlint.zip
 
 run:
 	./markdownlint .
@@ -35,3 +35,25 @@ validate:
 		--rm -it \
 			debian /usr/bin/markdownlint /docs/content/
 
+AWSTOKENSFILE ?= ../aws.env
+-include $(AWSTOKENSFILE)
+export GITHUB_USERNAME GITHUB_TOKEN
+
+RELEASE_DATE=`date +%F`
+
+release: docker
+	# TODO: check that we have upstream master, bail if not
+	docker run --rm -it -e GITHUB_TOKEN markdownlint \
+		github-release release --user docker --repo markdownlint --tag $(RELEASE_DATE)
+	docker run --rm -it -e GITHUB_TOKEN markdownlint \
+		github-release upload --user docker --repo markdownlint --tag $(RELEASE_DATE) \
+			--name markdownlint \
+			--file markdownlint
+	docker run --rm -it -e GITHUB_TOKEN markdownlint \
+		github-release upload --user docker --repo markdownlint --tag $(RELEASE_DATE) \
+			--name markdownlint-osx \
+			--file markdownlint.app
+	docker run --rm -it -e GITHUB_TOKEN markdownlint \
+		github-release upload --user docker --repo markdownlint --tag $(RELEASE_DATE) \
+			--name markdownlint.exe \
+			--file markdownlint.exe

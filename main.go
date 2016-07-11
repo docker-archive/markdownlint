@@ -51,6 +51,7 @@ func main() {
 		os.Exit(-1)
 	}
 
+	count := 0
 	for file, details := range data.AllFiles {
 		if !strings.HasPrefix(file, filter) {
 			data.VerboseLog("FILTERED: %s\n", file)
@@ -60,7 +61,11 @@ func main() {
 			data.VerboseLog("SKIPPING: %s\n", file)
 			continue
 		}
-		fmt.Printf("opening: %s\n", file)
+		// fmt.Printf("opening: %s\n", file)
+		count++
+		if count % 100 == 0 {
+			fmt.Printf("\topened %d files so far\n", count)
+		}
 
 		reader, err := linereader.OpenReader(details.FullPath)
 		if err != nil {
@@ -86,6 +91,7 @@ func main() {
 		}
 		reader.Close()
 	}
+	fmt.Printf("Starting to test links\n")
 	checkers.TestLinks()
 
 	// TODO (JIRA: DOCS-181): Title, unique across products if not, file should include an {identifier}
@@ -104,9 +110,9 @@ func main() {
 	}
 	errorCount, errorString := checkers.FrontSummary(filter)
 	Printf(f, errorString)
-	count, errorString := checkers.LinkSummary(filter)
+	count, errorString = checkers.LinkSummary(filter)
 	errorCount += count
-	Printf(f, errorString)
+	//Printf(f, errorString)
 	Printf(f, "\n\tFound: %d files\n", len(data.AllFiles))
 	Printf(f, "\tFound: %d errors\n", errorCount)
 	// return the number of 404's to show that there are things to be fixed
