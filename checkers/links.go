@@ -17,18 +17,20 @@ import (
 )
 
 var skipUrls = map[string]int{
-	"https://build.opensuse.org/project/show/Virtualization:containers": 1,
-	"https://build.opensuse.org/":                                       1,
-	"https://linux.oracle.com":                                          1,
-	"http://supervisord.org/":                                           1,
-	"http://goo.gl/HSz8UT":                                              1,
-	"https://www.linkedin.com/company/docker":                           1,
-	"https://cloud.docker.com/stack/deploy/":                            1,
-	"https://cloud.docker.com/account/":                                 1,
-	"https://reddit.com/r/docker":                                       1,
-	"https://www.reddit.com/r/docker":                                   1,
-	"https://godoc.org/golang.org/x/crypto/ssh":                         1,
-	"https://letsencrypt.org/how-it-works/":                             1,
+	"https://build.opensuse.org/project/show/Virtualization:containers":            1,
+	"https://build.opensuse.org/":                                                  1,
+	"https://linux.oracle.com":                                                     1,
+	"http://supervisord.org/":                                                      1,
+	"http://goo.gl/HSz8UT":                                                         1,
+	"https://www.linkedin.com/company/docker":                                      1,
+	"https://cloud.docker.com/stack/deploy/":                                       1,
+	"https://cloud.docker.com/account/":                                            1,
+	"https://reddit.com/r/docker":                                                  1,
+	"https://www.reddit.com/r/docker":                                              1,
+	"https://godoc.org/golang.org/x/crypto/ssh":                                    1,
+	"https://letsencrypt.org/how-it-works/":                                        1,
+	"https://cloud.google.com/compute/docs/disks/persistent-disks":                 1,
+	"https://godoc.org/github.com/docker/distribution/notifications#RequestRecord": 1,
 }
 
 
