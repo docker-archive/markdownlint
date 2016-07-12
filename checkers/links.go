@@ -27,6 +27,8 @@ var skipUrls = map[string]int{
 	"https://cloud.docker.com/account/":                                 1,
 	"https://reddit.com/r/docker":                                       1,
 	"https://www.reddit.com/r/docker":                                   1,
+	"https://godoc.org/golang.org/x/crypto/ssh":                         1,
+	"https://letsencrypt.org/how-it-works/":                             1,
 }
 
 
@@ -100,13 +102,13 @@ func TestLinks(filter string) {
 		data.AllLinks[link].Response = status
 		statusCount[status]++
 		if status == 200 ||
-			details.Response == 900 ||
-			details.Response == 299 ||
+			status == 900 ||
+			status == 299 ||
 			status == 2900 ||
 			status == 666 {
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
-			fmt.Printf("\t\t (%d) %d links to (%s)\n", status, details.Count, link)
+			data.ErrorLog("(%d) %d links to (%s)\n", status, details.Count, link)
 			for i, file := range data.AllLinks[link].LinksFrom {
 				fmt.Printf("\t\t\t link %s on page %s\n", data.AllLinks[link].ActualLink[i], file)
 			}

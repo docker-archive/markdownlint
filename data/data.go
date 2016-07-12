@@ -7,6 +7,10 @@ import (
 
 var verbose = flag.Bool("v", false, "verbose log output")
 
+func ErrorLog(format string, a ...interface{}) (n int, err error) {
+	return fmt.Printf("ERROR: "+format, a...)
+}
+
 func VerboseLog(format string, a ...interface{}) (n int, err error) {
 	if !*verbose {
 		return 0, nil

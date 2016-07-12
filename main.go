@@ -30,7 +30,7 @@ func main() {
 	fmt.Println("Finding files")
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
+			data.ErrorLog("%s\n", err)
 			return err
 		}
 		data.VerboseLog("FOUND: %s\n", path)
@@ -39,7 +39,7 @@ func main() {
 		}
 		file, err := filepath.Rel(dir, path)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
+			data.ErrorLog("%s\n", err)
 			return err
 		}
 		// verboseLog("\t walked to %s\n", file)
@@ -47,7 +47,7 @@ func main() {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("ERROR: %s\n", err)
+		data.ErrorLog("%s\n", err)
 		os.Exit(-1)
 	}
 
@@ -69,23 +69,23 @@ func main() {
 
 		reader, err := linereader.OpenReader(details.FullPath)
 		if err != nil {
-			fmt.Printf("ERROR opening: %s\n", err)
+			data.ErrorLog("%s\n", err)
 			data.AllFiles[file].FormatErrorCount++
 		}
 
 		err = checkers.CheckHugoFrontmatter(reader, file)
 		if err != nil {
-			fmt.Printf("ERROR (%s) frontmatter: %s\n", file, err)
+			data.ErrorLog("(%s) frontmatter: %s\n", file, err)
 		}
 
 		if draft, ok := data.AllFiles[file].Meta["draft"]; ok || draft == "true" {
-			fmt.Printf("Draft=%s: SKIPPING %s link check.\n", draft, file)
+			data.VerboseLog("Draft=%s: SKIPPING %s link check.\n", draft, file)
 		} else {
 			//fmt.Printf("Draft=%s: %s link check.\n", draft, file)
 			err = checkers.CheckMarkdownLinks(reader, file)
 			if err != nil {
 				// this only errors if there is a fatal issue
-				fmt.Printf("ERROR (%s) links: %s\n", file, err)
+				data.ErrorLog("(%s) links: %s\n", file, err)
 				data.AllFiles[file].FormatErrorCount++
 			}
 		}
