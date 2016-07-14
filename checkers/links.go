@@ -31,6 +31,7 @@ var skipUrls = map[string]int{
 	"https://letsencrypt.org/how-it-works/":                                        1,
 	"https://cloud.google.com/compute/docs/disks/persistent-disks":                 1,
 	"https://godoc.org/github.com/docker/distribution/notifications#RequestRecord": 1,
+	"https://support.docker.com":                                                   1,
 }
 
 
@@ -80,6 +81,7 @@ func LinkSummary(filter string) (int, string) {
 	for link, details := range data.AllLinks {
 		if details.Response == 200 ||
 			details.Response == 900 ||
+			details.Response == 888 ||
 			details.Response == 299 ||
 			details.Response == 2900 ||
 			details.Response == 666 {
@@ -105,9 +107,11 @@ func TestLinks(filter string) {
 		statusCount[status]++
 		if status == 200 ||
 			status == 900 ||
+			status == 888 ||
 			status == 299 ||
 			status == 2900 ||
 			status == 666 {
+			// These are not counted to the error count
 			data.VerboseLog("\t\t(%d) %d links to %s\n", status, details.Count, link)
 		} else {
 			data.ErrorLog("(%d) %d links to (%s)\n", status, details.Count, link)
@@ -172,9 +176,8 @@ func testUrl(link, filter string) int {
 	}
 	resp, err := httpClient.Get(link)
 	if err != nil {
-		fmt.Println("ERROR: Failed to crawl \"" + link + "\"  " + err.Error())
+		fmt.Println("Warning: Failed to crawl \"" + link + "\"  " + err.Error())
 		return 888
-		//return 888
 	}
 
 	loc, err := resp.Location()

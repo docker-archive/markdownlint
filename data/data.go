@@ -55,7 +55,7 @@ type LinkDetails struct {
 
 var ResponseCode = map[int]string{
 	999:  "failed to parse",
-	888:  "failed to crawl",
+	888:  "failed to crawl, ignoring",
 	2900: "local file path - ok",
 	900:  "mail/irc link, not checked",
 	200:  "ok",
