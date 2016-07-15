@@ -3,15 +3,15 @@ package checkers
 import (
 	"testing"
 
-	"github.com/SvenDowideit/markdownlint/data"
-	"github.com/SvenDowideit/markdownlint/linereader"
+	"github.com/docker/markdownlint/data"
+	"github.com/docker/markdownlint/linereader"
 )
 
 // NOTE: this has some spaces and tabs as well as newlines at the start. this is intentional
 const OK_TOPIC = `
 
-  
-	
+
+
 <!--[metadata]>
 +++
 title = "Dockerfile reference"
@@ -25,8 +25,8 @@ parent = "mn_reference"
 `
 const MISSING_COMMENT_START_TOPIC = `
 
-  
-	
+
+
 +++
 title = "Dockerfile reference"
 description = "Dockerfiles use a simple DSL which allows you to automate the steps you would normally manually take to create an image."
@@ -39,8 +39,8 @@ parent = "mn_reference"
 `
 const MISSING_COMMENT_END_TOPIC = `
 
-  
-	
+
+
 <!--[metadata]>
 +++
 title = "Dockerfile reference end comment missing"

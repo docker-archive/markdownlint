@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/SvenDowideit/markdownlint/checkers"
-	"github.com/SvenDowideit/markdownlint/data"
-	"github.com/SvenDowideit/markdownlint/linereader"
+	"github.com/docker/markdownlint/checkers"
+	"github.com/docker/markdownlint/data"
+	"github.com/docker/markdownlint/linereader"
 )
 
 func main() {
@@ -63,7 +63,7 @@ func main() {
 		}
 		// fmt.Printf("opening: %s\n", file)
 		count++
-		if count % 100 == 0 {
+		if count%100 == 0 {
 			fmt.Printf("\topened %d files so far\n", count)
 		}
 

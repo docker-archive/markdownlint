@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SvenDowideit/markdownlint/data"
-	"github.com/SvenDowideit/markdownlint/linereader"
+	"github.com/docker/markdownlint/data"
+	"github.com/docker/markdownlint/linereader"
 
 	"github.com/miekg/mmark"
 )
@@ -33,7 +33,6 @@ var skipUrls = map[string]int{
 	"https://godoc.org/github.com/docker/distribution/notifications#RequestRecord": 1,
 	"https://support.docker.com":                                                   1,
 }
-
 
 func CheckMarkdownLinks(reader *linereader.LineReader, file string) (err error) {
 	// mmark.HtmlRendererWithParameters(htmlFlags, "", "", renderParameters)

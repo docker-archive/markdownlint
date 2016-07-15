@@ -12,7 +12,7 @@ build:
 	go build -o markdownlint main.go
 
 shell: docker-build
-	docker run --rm -it -v $(CURDIR):/go/src/github.com/SvenDowideit/markdownlint markdownlint bash
+	docker run --rm -it -v $(CURDIR):/go/src/github.com/docker/markdownlint markdownlint bash
 
 docker-build:
 	rm -f markdownlint.zip
@@ -21,7 +21,7 @@ docker-build:
 docker: docker-build
 	docker rm markdownlint-build || true
 	docker run --name markdownlint-build markdownlint ls
-	docker cp markdownlint-build:/go/src/github.com/SvenDowideit/markdownlint/markdownlint.zip .
+	docker cp markdownlint-build:/go/src/github.com/docker/markdownlint/markdownlint.zip .
 	rm -f markdownlint
 	unzip -o markdownlint.zip
 

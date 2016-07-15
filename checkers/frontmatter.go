@@ -6,8 +6,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/SvenDowideit/markdownlint/data"
-	"github.com/SvenDowideit/markdownlint/linereader"
+	"github.com/docker/markdownlint/data"
+	"github.com/docker/markdownlint/linereader"
 )
 
 // https://gohugo.io/content/front-matter/
