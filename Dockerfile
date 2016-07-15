@@ -14,7 +14,7 @@ ENV USER root
 WORKDIR /go/src/github.com/docker/markdownlint
 
 RUN go get github.com/russross/blackfriday
-run go get github.com/miekg/mmark
+RUN go get github.com/miekg/mmark
 
 ADD . /go/src/github.com/docker/markdownlint
 RUN go get -d -v
