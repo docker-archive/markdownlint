@@ -11,12 +11,12 @@ RUN wget -O github-release.bz2 https://github.com/aktau/github-release/releases/
 ENV GOPATH /go
 ENV USER root
 
-WORKDIR /go/src/github.com/SvenDowideit/markdownlint
+WORKDIR /go/src/github.com/docker/markdownlint
 
 RUN go get github.com/russross/blackfriday
-run go get github.com/miekg/mmark
+RUN go get github.com/miekg/mmark
 
-ADD . /go/src/github.com/SvenDowideit/markdownlint
+ADD . /go/src/github.com/docker/markdownlint
 RUN go get -d -v
 RUN go test -v ./...
 
