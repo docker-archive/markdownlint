@@ -92,7 +92,7 @@ func main() {
 		reader.Close()
 	}
 	fmt.Printf("Starting to test links (Filter = %s)\n", filter)
-	checkers.TestLinks(filter)
+	checkers.TestLinks(filter, true)
 
 	// TODO (JIRA: DOCS-181): Title, unique across products if not, file should include an {identifier}
 

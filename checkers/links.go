@@ -98,11 +98,11 @@ func LinkSummary(filter string) (int, string) {
 	return errorCount, errorString
 }
 
-func TestLinks(filter string) {
+func TestLinks(filter string, checkExternalLinks bool) {
 	linkCount := 0
 	for link, details := range data.AllLinks {
 		linkCount++
-		status := testUrl(link, filter)
+		status := testUrl(link, filter, checkExternalLinks)
 		data.AllLinks[link].Response = status
 		statusCount[status]++
 		if status == 200 ||
@@ -126,7 +126,7 @@ func TestLinks(filter string) {
 	fmt.Printf("\tTotal Links: %d\n", linkCount)
 }
 
-func testUrl(link, filter string) int {
+func testUrl(link, filter string, checkExternalLinks bool) int {
 	if _, ok := skipUrls[link]; ok {
 		fmt.Printf("Skipping: %s\n", link)
 		return 299
@@ -170,6 +170,10 @@ func testUrl(link, filter string) int {
 	if base.Host == "docs.docker.com" {
 		err = fmt.Errorf("avoid linking directly to %s", base.Host)
 		return 666
+	}
+	if !checkExternalLinks {
+		data.VerboseLog("External link checking disabled: %s\n", link)
+		return 299
 	}
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
